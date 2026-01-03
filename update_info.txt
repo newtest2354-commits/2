@@ -1,20 +1,20 @@
-Updated: 2026-01-03 19:16 UTC
-Telegram configs: 1517
-GitHub configs: 12111
-Combined configs: 13351
-Country classified configs: 13206
+Updated: 2026-01-03 21:55 UTC
+Telegram configs: 1522
+GitHub configs: 12172
+Combined configs: 13434
+Country classified configs: 13290
 
 === Country Classification Summary ===
 
-Total configs processed: 13347
-Successfully processed: 13206
-Failed to process: 141
+Total configs processed: 13430
+Successfully processed: 13290
+Failed to process: 140
 
-IP-based configs: 2342
-Domain-based configs: 10864
+IP-based configs: 2356
+Domain-based configs: 10934
 
 CDN detected: 0
-Unresolved domains: 2326
+Unresolved domains: 2352
 
 Detection Methods:
   GeoLite2: 0
@@ -24,12 +24,12 @@ Detection Methods:
 Configurations by Country:
 
 By Protocol:
-  vless: 9733 configs
-  hysteria: 1539 configs
-  ss: 905 configs
-  vmess: 737 configs
-  trojan: 292 configs
+  vless: 9773 configs
+  hysteria: 1561 configs
+  ss: 906 configs
+  vmess: 756 configs
+  trojan: 294 configs
 
 Special Categories:
-  UNKNOWN: 10880 configs
-  UNRESOLVED: 2326 configs
+  UNKNOWN: 10938 configs
+  UNRESOLVED: 2352 configs
