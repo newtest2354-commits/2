@@ -48,40 +48,21 @@ class GeoIPManager:
         self.country_reader = None
         self.asn_reader = None
         self.lock = threading.Lock()
-        self.cdn_asns = {
-            13335: "CLOUDFLARE",
-            20940: "AKAMAI",
-            54113: "FASTLY",
-            15169: "GOOGLE",
-            16509: "AMAZON",
-            8075: "MICROSOFT",
-            398324: "GITHUB",
-            46489: "LIMELIGHT",
-            54600: "EDGECAST",
-            60626: "STACKPATH"
-        }
-        self.datacenter_asns = {
-            24940: "HETZNER",
-            16276: "OVH",
-            51167: "CONTABO",
-            14061: "DIGITALOCEAN",
-            23352: "SERVERIUS",
-            60781: "LEASEWEB",
-            35470: "CHOOPA",
-            20473: "AS-CHOOPA",
-            1508: "COLOGNE",
-            32934: "FACEBOOK",
-            393406: "SCALEWAY",
-            21409: "PONYNET",
-            40065: "GCP",
-            14618: "AMAZON-AWS",
-            15133: "EDGIO",
-            30081: "MIVOS",
-            9009: "M247",
-            397233: "VULTR",
-            23470: "RELIABLESITE",
-            46844: "SHARKTECH"
-        }
+        
+        self.datacenter_keywords = [
+            'hetzner', 'ovh', 'contabo', 'digitalocean', 'serverius', 
+            'leaseweb', 'choopa', 'vultr', 'linode', 'upcloud', 'scaleway',
+            'alibaba', 'tencent', 'huawei cloud', 'oracle cloud', 'ibm cloud',
+            'godaddy', 'hostinger', 'namecheap', 'bluehost', 'siteground',
+            'a2 hosting', 'dreamhost', 'server', 'hosting', 'datacenter',
+            'data center', 'colo', 'colocation', 'cloud', 'vps', 'dedicated'
+        ]
+        
+        self.cdn_keywords = [
+            'cloudflare', 'akamai', 'fastly', 'google edge', 'amazon cloudfront',
+            'aws edge', 'azure edge', 'cdn', 'cloudfront', 'edgecast', 'stackpath',
+            'limelight', 'imperva', 'incapsula', 'anycast'
+        ]
         
         self.setup_databases()
     
@@ -91,8 +72,8 @@ class GeoIPManager:
         if not os.path.exists(self.country_db):
             logger.info("Downloading GeoLite2 Country database...")
             try:
-                country_url = "https://cdn.jsdelivr.net/gh/P3TERX/GeoLite.mmdb@release/GeoLite2-Country.mmdb"
-                response = requests.get(country_url, stream=True, timeout=30)
+                response = requests.get("https://cdn.jsdelivr.net/gh/P3TERX/GeoLite.mmdb@release/GeoLite2-Country.mmdb", 
+                                       timeout=60, stream=True)
                 if response.status_code == 200:
                     with open(self.country_db, 'wb') as f:
                         for chunk in response.iter_content(chunk_size=8192):
@@ -100,25 +81,12 @@ class GeoIPManager:
                     logger.info("GeoLite2 Country database downloaded successfully")
                 else:
                     logger.error(f"Failed to download Country database. Status: {response.status_code}")
+                    self.create_empty_country_file()
             except Exception as e:
                 logger.error(f"Error downloading Country database: {e}")
+                self.create_empty_country_file()
         
-        if not os.path.exists(self.asn_db):
-            logger.info("Downloading GeoLite2 ASN database...")
-            try:
-                asn_url = "https://cdn.jsdelivr.net/gh/P3TERX/GeoLite.mmdb@release/GeoLite2-ASN.mmdb"
-                response = requests.get(asn_url, stream=True, timeout=30)
-                if response.status_code == 200:
-                    with open(self.asn_db, 'wb') as f:
-                        for chunk in response.iter_content(chunk_size=8192):
-                            f.write(chunk)
-                    logger.info("GeoLite2 ASN database downloaded successfully")
-                else:
-                    logger.error(f"Failed to download ASN database. Status: {response.status_code}")
-            except Exception as e:
-                logger.error(f"Error downloading ASN database: {e}")
-        
-        if os.path.exists(self.country_db):
+        if os.path.exists(self.country_db) and os.path.getsize(self.country_db) > 0:
             try:
                 self.country_reader = geoip2.database.Reader(self.country_db)
                 logger.info("GeoLite2 Country database loaded successfully")
@@ -126,13 +94,36 @@ class GeoIPManager:
                 logger.error(f"Error loading Country database: {e}")
                 self.country_reader = None
         
-        if os.path.exists(self.asn_db):
+        if not os.path.exists(self.asn_db):
+            logger.info("Downloading GeoLite2 ASN database...")
+            try:
+                response = requests.get("https://cdn.jsdelivr.net/gh/P3TERX/GeoLite.mmdb@release/GeoLite2-ASN.mmdb", 
+                                       timeout=60, stream=True)
+                if response.status_code == 200:
+                    with open(self.asn_db, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                    logger.info("GeoLite2 ASN database downloaded successfully")
+                else:
+                    logger.warning("ASN database not available, using simplified detection")
+            except Exception as e:
+                logger.error(f"Error downloading ASN database: {e}")
+        
+        if os.path.exists(self.asn_db) and os.path.getsize(self.asn_db) > 0:
             try:
                 self.asn_reader = geoip2.database.Reader(self.asn_db)
                 logger.info("GeoLite2 ASN database loaded successfully")
             except Exception as e:
                 logger.error(f"Error loading ASN database: {e}")
                 self.asn_reader = None
+    
+    def create_empty_country_file(self):
+        try:
+            with open(self.country_db, 'wb') as f:
+                f.write(b'')
+            logger.info("Created empty country database file")
+        except Exception as e:
+            logger.error(f"Error creating empty country file: {e}")
     
     def get_country_geolite(self, ip):
         if not self.country_reader:
@@ -141,104 +132,72 @@ class GeoIPManager:
         try:
             with self.lock:
                 response = self.country_reader.country(ip)
-                return response.country.iso_code
+                country_code = response.country.iso_code
+                if country_code:
+                    return country_code
         except Exception as e:
             logger.debug(f"GeoLite2 country lookup failed for {ip}: {e}")
-            return None
-    
-    def get_asn_info(self, ip):
-        if not self.asn_reader:
-            return None
         
+        return None
+    
+    def get_asn_info_simple(self, ip):
         try:
+            if not self.asn_reader:
+                return None
+            
             with self.lock:
                 response = self.asn_reader.asn(ip)
                 return {
                     'asn': response.autonomous_system_number,
-                    'org': response.autonomous_system_organization or '',
-                    'prefix_len': response.network.prefixlen if hasattr(response.network, 'prefixlen') else 24
+                    'org': (response.autonomous_system_organization or '').lower(),
+                    'prefix_len': getattr(response.network, 'prefixlen', 24)
                 }
         except Exception as e:
             logger.debug(f"ASN lookup failed for {ip}: {e}")
             return None
     
-    def is_anycast(self, asn_info):
-        if not asn_info:
+    def is_cdn_ip(self, ip):
+        org_info = self.get_asn_info_simple(ip)
+        if not org_info:
             return False
         
-        prefix_len = asn_info.get('prefix_len', 24)
-        org_lower = asn_info.get('org', '').lower()
+        org = org_info.get('org', '').lower()
         
+        for keyword in self.cdn_keywords:
+            if keyword in org:
+                return True
+        
+        prefix_len = org_info.get('prefix_len', 24)
         if prefix_len <= 20:
             return True
         
-        anycast_keywords = ['anycast', 'global', 'edge network', 'cdn', 'cloudfront']
-        if any(keyword in org_lower for keyword in anycast_keywords):
-            return True
-        
         return False
     
-    def is_cdn_asn(self, asn_info):
-        if not asn_info:
+    def is_datacenter_ip(self, ip):
+        org_info = self.get_asn_info_simple(ip)
+        if not org_info:
             return False
         
-        asn_number = asn_info.get('asn')
-        org_lower = asn_info.get('org', '').lower()
+        org = org_info.get('org', '').lower()
         
-        if asn_number in self.cdn_asns:
-            return True
-        
-        cdn_keywords = ['cloudflare', 'akamai', 'fastly', 'google edge', 'amazon cloudfront', 
-                       'aws edge', 'azure edge', 'cdn', 'cloudfront', 'edgecast', 'stackpath',
-                       'limelight', 'imperva', 'incapsula']
-        
-        if any(keyword in org_lower for keyword in cdn_keywords):
-            return True
+        for keyword in self.datacenter_keywords:
+            if keyword in org:
+                return True
         
         return False
     
-    def is_datacenter_asn(self, asn_info):
-        if not asn_info:
-            return False
+    def get_country_for_ip(self, ip):
+        if self.is_cdn_ip(ip):
+            return 'CDN'
         
-        asn_number = asn_info.get('asn')
-        org_lower = asn_info.get('org', '').lower()
+        country = self.get_country_geolite(ip)
+        if country:
+            return country
         
-        if asn_number in self.datacenter_asns:
-            return True
+        if self.is_datacenter_ip(ip):
+            return 'UNKNOWN_DATACENTER'
         
-        dc_keywords = ['hetzner', 'ovh', 'contabo', 'digitalocean', 'serverius', 'leaseweb',
-                      'choopa', 'vultr', 'linode', 'upcloud', 'scaleway', 'alibaba', 'tencent',
-                      'huawei cloud', 'oracle cloud', 'ibm cloud', 'godaddy', 'hostinger',
-                      'namecheap', 'bluehost', 'siteground', 'a2 hosting', 'dreamhost']
-        
-        if any(keyword in org_lower for keyword in dc_keywords):
-            return True
-        
-        return False
-    
-    def classify_ip_type(self, ip):
-        asn_info = self.get_asn_info(ip)
-        if not asn_info:
-            return "UNKNOWN"
-        
-        if self.is_anycast(asn_info):
-            return "CDN"
-        
-        if self.is_cdn_asn(asn_info):
-            return "CDN"
-        
-        if self.is_datacenter_asn(asn_info):
-            return "FIXED_IP"
-        
-        org_lower = asn_info.get('org', '').lower()
-        residential_keywords = ['isp', 'telecom', 'communication', 'broadband', 'cable', 
-                              'fiber', 'dsl', 'adsl', 'residential', 'home', 'consumer']
-        
-        if any(keyword in org_lower for keyword in residential_keywords):
-            return "RESIDENTIAL"
-        
-        return "UNKNOWN"
+        return 'UNKNOWN'
     
     def close(self):
         if self.country_reader:
@@ -251,16 +210,6 @@ class DNSResolver:
         self.cache = {}
         self.cache_file = 'dns_cache.pkl'
         self.lock = threading.Lock()
-        self.dns_servers = [
-            '8.8.8.8',
-            '8.8.4.4',
-            '1.1.1.1',
-            '1.0.0.1',
-            '9.9.9.9',
-            '149.112.112.112',
-            '208.67.222.222',
-            '208.67.220.220'
-        ]
         
         self.load_cache()
     
@@ -293,36 +242,32 @@ class DNSResolver:
         
         ips = []
         
-        for dns_server in self.dns_servers[:3]:
+        try:
+            resolver = dns.resolver.Resolver()
+            resolver.nameservers = ['8.8.8.8', '1.1.1.1']
+            resolver.timeout = 5
+            resolver.lifetime = 5
+            
             try:
-                resolver = dns.resolver.Resolver()
-                resolver.nameservers = [dns_server]
-                resolver.timeout = 3
-                resolver.lifetime = 3
-                
-                try:
-                    answers = resolver.resolve(domain, 'A')
-                    for answer in answers:
-                        ip = str(answer)
-                        if self.is_valid_ip(ip):
-                            ips.append(ip)
-                except:
-                    pass
-                
-                try:
-                    answers = resolver.resolve(domain, 'AAAA')
-                    for answer in answers:
-                        ip = str(answer)
-                        if self.is_valid_ipv6(ip):
-                            ips.append(ip)
-                except:
-                    pass
-                
-                if ips:
-                    break
-            except Exception as e:
-                logger.debug(f"DNS resolution failed for {domain} using {dns_server}: {e}")
-                continue
+                answers = resolver.resolve(domain, 'A')
+                for answer in answers:
+                    ip = str(answer)
+                    if self.is_valid_ip(ip):
+                        ips.append(ip)
+            except:
+                pass
+            
+            try:
+                answers = resolver.resolve(domain, 'AAAA')
+                for answer in answers:
+                    ip = str(answer)
+                    if self.is_valid_ipv6(ip):
+                        ips.append(ip)
+            except:
+                pass
+            
+        except Exception as e:
+            logger.debug(f"DNS resolution failed for {domain}: {e}")
         
         if not ips:
             try:
@@ -357,14 +302,6 @@ class DNSResolver:
             return True
         except socket.error:
             return False
-    
-    def get_clean_cache(self):
-        current_time = time.time()
-        clean_cache = {}
-        for domain, data in self.cache.items():
-            if current_time - data['timestamp'] < 86400:
-                clean_cache[domain] = data
-        return clean_cache
 
 class GeoIPClassifier:
     def __init__(self):
@@ -373,17 +310,13 @@ class GeoIPClassifier:
         self.ipapi_cache = {}
         self.cache_file = 'geoip_cache.pkl'
         self.lock = threading.Lock()
-        self.ipapi_requests = 0
-        self.last_ipapi_request = 0
         
         self.load_cache()
         self.stats = {
             'geolite_success': 0,
             'ipapi_success': 0,
             'failed': 0,
-            'cdn_detected': 0,
-            'fixed_ip': 0,
-            'residential': 0
+            'cdn_detected': 0
         }
     
     def load_cache(self):
@@ -402,27 +335,15 @@ class GeoIPClassifier:
             pass
     
     def get_country_by_ipapi(self, ip):
-        current_time = time.time()
-        
-        if current_time - self.last_ipapi_request < 1:
-            time.sleep(1.1 - (current_time - self.last_ipapi_request))
-        
         try:
             with self.lock:
                 if ip in self.ipapi_cache:
                     cached_data = self.ipapi_cache[ip]
-                    if current_time - cached_data['timestamp'] < 86400:
+                    if time.time() - cached_data['timestamp'] < 86400:
                         return cached_data['country']
             
-            if self.ipapi_requests >= 140:
-                time.sleep(65)
-                self.ipapi_requests = 0
-            
-            self.ipapi_requests += 1
-            self.last_ipapi_request = time.time()
-            
-            response = requests.get(f"http://ip-api.com/json/{ip}?fields=status,message,countryCode,isp,as,asname,org,mobile,proxy,hosting", 
-                                  timeout=15)
+            response = requests.get(f"http://ip-api.com/json/{ip}?fields=status,message,countryCode", 
+                                  timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
@@ -432,12 +353,7 @@ class GeoIPClassifier:
                     with self.lock:
                         self.ipapi_cache[ip] = {
                             'country': country,
-                            'timestamp': time.time(),
-                            'isp': data.get('isp', ''),
-                            'as': data.get('as', ''),
-                            'hosting': data.get('hosting', False),
-                            'mobile': data.get('mobile', False),
-                            'proxy': data.get('proxy', False)
+                            'timestamp': time.time()
                         }
                     
                     return country
@@ -447,22 +363,17 @@ class GeoIPClassifier:
         return "UNKNOWN"
     
     def get_country_for_ip(self, ip):
-        ip_type = self.geoip_manager.classify_ip_type(ip)
+        country = self.geoip_manager.get_country_for_ip(ip)
         
-        if ip_type == "CDN":
+        if country == 'CDN':
             self.stats['cdn_detected'] += 1
             return 'CDN'
-        elif ip_type == "FIXED_IP":
-            self.stats['fixed_ip'] += 1
-        elif ip_type == "RESIDENTIAL":
-            self.stats['residential'] += 1
         
-        country = self.geoip_manager.get_country_geolite(ip)
-        if country:
+        if country and country not in ['UNKNOWN', 'UNKNOWN_DATACENTER']:
             self.stats['geolite_success'] += 1
             return country
         
-        if ip_type == "FIXED_IP":
+        if country == 'UNKNOWN_DATACENTER':
             country = self.get_country_by_ipapi(ip)
             if country != 'UNKNOWN':
                 self.stats['ipapi_success'] += 1
@@ -470,27 +381,28 @@ class GeoIPClassifier:
                 self.stats['failed'] += 1
             return country
         
-        return "UNKNOWN"
+        self.stats['failed'] += 1
+        return 'UNKNOWN'
     
     def get_country_for_domain(self, domain):
         ips = self.dns_resolver.resolve_domain(domain)
         if not ips:
             return 'UNRESOLVED'
         
-        for ip in ips:
-            ip_type = self.geoip_manager.classify_ip_type(ip)
-            if ip_type == "FIXED_IP":
-                country = self.get_country_for_ip(ip)
-                if country and country not in ['UNKNOWN', 'CDN']:
-                    return country
+        countries = []
+        for ip in ips[:2]:
+            country = self.get_country_for_ip(ip)
+            if country and country not in ['UNKNOWN', 'CDN', 'UNRESOLVED']:
+                countries.append(country)
         
-        if ips:
-            first_ip = ips[0]
-            ip_type = self.geoip_manager.classify_ip_type(first_ip)
-            if ip_type == "CDN":
+        if not countries:
+            if self.geoip_manager.is_cdn_ip(ips[0]):
                 return 'CDN'
+            return 'UNKNOWN'
         
-        return 'UNKNOWN'
+        from collections import Counter
+        most_common = Counter(countries).most_common(1)
+        return most_common[0][0]
     
     def get_stats(self):
         return self.stats
@@ -499,14 +411,6 @@ class GeoIPClassifier:
         self.dns_resolver.save_cache()
         self.save_cache()
         self.geoip_manager.close()
-        
-        with self.lock:
-            current_time = time.time()
-            clean_cache = {}
-            for ip, data in self.ipapi_cache.items():
-                if current_time - data['timestamp'] < 86400:
-                    clean_cache[ip] = data
-            self.ipapi_cache = clean_cache
 
 class ConfigParser:
     def __init__(self):
@@ -792,8 +696,6 @@ class CountryClassifier:
             'ip_based': 0,
             'domain_based': 0,
             'cdn_detected': 0,
-            'fixed_ip': 0,
-            'residential': 0,
             'unresolved': 0,
             'by_country': {},
             'by_protocol': {},
@@ -817,30 +719,21 @@ class CountryClassifier:
             is_ip = self.parser.is_ip_address(detection_host)
             country = 'UNKNOWN'
             detection_method = 'unknown'
-            ip_type = 'UNKNOWN'
             
             if is_ip:
                 country = self.geoip.get_country_for_ip(detection_host)
-                geoip_stats = self.geoip.get_stats()
-                
                 if country == 'CDN':
                     detection_method = 'cdn'
-                    ip_type = 'CDN'
-                elif geoip_stats['fixed_ip'] > self.stats['fixed_ip']:
-                    detection_method = 'geolite'
-                    ip_type = 'FIXED_IP'
-                elif geoip_stats['residential'] > self.stats['residential']:
-                    detection_method = 'ipapi'
-                    ip_type = 'RESIDENTIAL'
+                else:
+                    geoip_stats = self.geoip.get_stats()
+                    if geoip_stats['geolite_success'] > self.stats['detection_method']['geolite']:
+                        detection_method = 'geolite'
+                    elif geoip_stats['ipapi_success'] > self.stats['detection_method']['ipapi']:
+                        detection_method = 'ipapi'
             else:
                 country = self.geoip.get_country_for_domain(detection_host)
                 if country == 'UNRESOLVED':
-                    ip_type = 'UNRESOLVED'
-                elif country == 'CDN':
-                    ip_type = 'CDN'
-                    detection_method = 'cdn'
-                else:
-                    ip_type = 'DOMAIN_RESOLVED'
+                    self.stats['unresolved'] += 1
             
             return {
                 'config': config_str,
@@ -849,8 +742,7 @@ class CountryClassifier:
                 'domain': detection_host if not is_ip else None,
                 'country': country,
                 'is_ip': is_ip,
-                'detection_method': detection_method,
-                'ip_type': ip_type
+                'detection_method': detection_method
             }
         except Exception as e:
             logger.debug(f"Failed to process config: {e}")
@@ -867,8 +759,6 @@ class CountryClassifier:
             'ip_based': 0,
             'domain_based': 0,
             'cdn_detected': 0,
-            'fixed_ip': 0,
-            'residential': 0,
             'unresolved': 0,
             'by_country': {},
             'by_protocol': {},
@@ -912,19 +802,9 @@ class CountryClassifier:
                         country = result['country']
                         protocol = result['parsed']['protocol']
                         method = result['detection_method']
-                        ip_type = result['ip_type']
                         
                         if method in self.stats['detection_method']:
                             self.stats['detection_method'][method] += 1
-                        
-                        if ip_type == 'CDN':
-                            self.stats['cdn_detected'] += 1
-                        elif ip_type == 'FIXED_IP':
-                            self.stats['fixed_ip'] += 1
-                        elif ip_type == 'RESIDENTIAL':
-                            self.stats['residential'] += 1
-                        elif ip_type == 'UNRESOLVED':
-                            self.stats['unresolved'] += 1
                         
                         if country not in self.results:
                             self.results[country] = {}
@@ -942,8 +822,7 @@ class CountryClassifier:
         geoip_stats = self.geoip.get_stats()
         self.stats['detection_method']['geolite'] = geoip_stats['geolite_success']
         self.stats['detection_method']['ipapi'] = geoip_stats['ipapi_success']
-        self.stats['fixed_ip'] = geoip_stats['fixed_ip']
-        self.stats['residential'] = geoip_stats['residential']
+        self.stats['cdn_detected'] = geoip_stats['cdn_detected']
         
         self.geoip.cleanup()
         
@@ -957,7 +836,11 @@ class CountryClassifier:
         
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        valid_countries = [c for c in results['results'].keys() if c not in ['UNKNOWN', 'UNRESOLVED', 'CDN']]
+        all_countries = list(results['results'].keys())
+        valid_countries = [c for c in all_countries if c not in ['UNKNOWN', 'UNRESOLVED', 'CDN', 'UNKNOWN_DATACENTER']]
+        
+        if valid_countries:
+            logger.info(f"Found {len(valid_countries)} valid countries: {valid_countries}")
         
         for country in valid_countries:
             protocols = results['results'][country]
@@ -992,7 +875,7 @@ class CountryClassifier:
                 with open(all_file, 'w', encoding='utf-8') as f:
                     f.write(content)
         
-        special_categories = ['UNKNOWN', 'UNRESOLVED', 'CDN']
+        special_categories = ['UNKNOWN', 'UNRESOLVED', 'CDN', 'UNKNOWN_DATACENTER']
         for category in special_categories:
             if category in results['results']:
                 category_dir = os.path.join(output_dir, category)
@@ -1009,12 +892,17 @@ class CountryClassifier:
                         content = f"# CDN-Based Configurations\n"
                         content += f"# Updated: {timestamp}\n"
                         content += f"# Total Count: {len(category_configs)}\n"
-                        content += "# Note: These configs use CDN IP addresses (Cloudflare, Akamai, etc.)\n\n"
+                        content += "# Note: These configs use CDN IP addresses\n\n"
                     elif category == 'UNRESOLVED':
                         content = f"# Unresolved Configurations\n"
                         content += f"# Updated: {timestamp}\n"
                         content += f"# Total Count: {len(category_configs)}\n"
                         content += "# Note: These configs have unresolvable domains\n\n"
+                    elif category == 'UNKNOWN_DATACENTER':
+                        content = f"# Datacenter IP Configurations (Unknown Country)\n"
+                        content += f"# Updated: {timestamp}\n"
+                        content += f"# Total Count: {len(category_configs)}\n"
+                        content += "# Note: These configs use datacenter IPs but country unknown\n\n"
                     else:
                         content = f"# Unknown Country Configurations\n"
                         content += f"# Updated: {timestamp}\n"
@@ -1037,29 +925,25 @@ class CountryClassifier:
             f.write(f"IP-based configs: {results['stats']['ip_based']}\n")
             f.write(f"Domain-based configs: {results['stats']['domain_based']}\n\n")
             
-            f.write(f"IP Type Classification:\n")
-            f.write(f"  FIXED_IP (Datacenter): {results['stats']['fixed_ip']}\n")
-            f.write(f"  CDN detected: {results['stats']['cdn_detected']}\n")
-            f.write(f"  Residential IPs: {results['stats']['residential']}\n")
-            f.write(f"  Unresolved domains: {results['stats']['unresolved']}\n\n")
+            f.write(f"CDN detected: {results['stats']['cdn_detected']}\n")
+            f.write(f"Unresolved domains: {results['stats']['unresolved']}\n\n")
             
             f.write("Detection Methods:\n")
             f.write(f"  GeoLite2: {results['stats']['detection_method']['geolite']}\n")
             f.write(f"  IP-API: {results['stats']['detection_method']['ipapi']}\n")
             f.write(f"  CDN: {results['stats']['detection_method']['cdn']}\n\n")
             
-            f.write("Configurations by Country (Top 20):\n")
-            ip_countries = {k: v for k, v in results['stats']['by_country'].items() 
-                          if k not in ['UNKNOWN', 'UNRESOLVED', 'CDN']}
-            for country, count in sorted(ip_countries.items(), key=lambda x: x[1], reverse=True)[:20]:
-                f.write(f"  {country}: {count} configs\n")
+            f.write("Configurations by Country:\n")
+            for country, count in sorted(results['stats']['by_country'].items(), key=lambda x: x[1], reverse=True):
+                if country not in ['UNKNOWN', 'UNRESOLVED', 'CDN', 'UNKNOWN_DATACENTER']:
+                    f.write(f"  {country}: {count} configs\n")
             
             f.write("\nBy Protocol:\n")
             for protocol, count in sorted(results['stats']['by_protocol'].items(), key=lambda x: x[1], reverse=True):
                 f.write(f"  {protocol}: {count} configs\n")
             
             f.write("\nSpecial Categories:\n")
-            for category in ['UNKNOWN', 'UNRESOLVED', 'CDN']:
+            for category in ['UNKNOWN', 'UNRESOLVED', 'CDN', 'UNKNOWN_DATACENTER']:
                 if category in results['stats']['by_country']:
                     f.write(f"  {category}: {results['stats']['by_country'][category]} configs\n")
         
@@ -1133,18 +1017,16 @@ def main():
         print(f"Successfully processed: {results['stats']['processed']}")
         print(f"Failed to process: {results['stats']['failed']}")
         
-        print(f"\n📊 IP Type Classification:")
-        print(f"  FIXED_IP (Datacenter): {results['stats']['fixed_ip']}")
-        print(f"  CDN detected: {results['stats']['cdn_detected']}")
-        print(f"  Residential IPs: {results['stats']['residential']}")
+        valid_countries = [c for c in results['stats']['by_country'].keys() 
+                         if c not in ['UNKNOWN', 'UNRESOLVED', 'CDN', 'UNKNOWN_DATACENTER']]
         
-        print(f"\n📍 Top Countries (IP-based):")
-        ip_countries = {k: v for k, v in results['stats']['by_country'].items() 
-                       if k not in ['UNKNOWN', 'UNRESOLVED', 'CDN']}
-        top_countries = sorted(ip_countries.items(), key=lambda x: x[1], reverse=True)[:10]
-        
-        for country, count in top_countries:
-            print(f"  {country}: {count} configs")
+        if valid_countries:
+            print(f"\n📍 Countries Found ({len(valid_countries)}):")
+            for country in valid_countries:
+                count = results['stats']['by_country'][country]
+                print(f"  {country}: {count} configs")
+        else:
+            print(f"\n⚠️ No valid countries found. Check GeoIP database download.")
         
         print(f"\n📁 Output saved to: configs/country/")
         print("=" * 60)
