@@ -1,0 +1,27 @@
+{
+  "total": 13358,
+  "processed": 13217,
+  "failed": 141,
+  "ip_based": 2338,
+  "domain_based": 10879,
+  "cdn_detected": 0,
+  "fixed_ip": 0,
+  "residential": 0,
+  "unresolved": 2327,
+  "by_country": {
+    "UNKNOWN": 10890,
+    "UNRESOLVED": 2327
+  },
+  "by_protocol": {
+    "vmess": 736,
+    "vless": 9730,
+    "trojan": 291,
+    "ss": 903,
+    "hysteria": 1557
+  },
+  "detection_method": {
+    "geolite": 0,
+    "ipapi": 0,
+    "cdn": 0
+  }
+}

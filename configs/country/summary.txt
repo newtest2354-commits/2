@@ -1,0 +1,33 @@
+# Country Classification Summary
+# Updated: 2026-01-03 18:03:43
+
+Total configs processed: 13358
+Successfully processed: 13217
+Failed to process: 141
+
+IP-based configs: 2338
+Domain-based configs: 10879
+
+IP Type Classification:
+  FIXED_IP (Datacenter): 0
+  CDN detected: 0
+  Residential IPs: 0
+  Unresolved domains: 2327
+
+Detection Methods:
+  GeoLite2: 0
+  IP-API: 0
+  CDN: 0
+
+Configurations by Country (Top 20):
+
+By Protocol:
+  vless: 9730 configs
+  hysteria: 1557 configs
+  ss: 903 configs
+  vmess: 736 configs
+  trojan: 291 configs
+
+Special Categories:
+  UNKNOWN: 10890 configs
+  UNRESOLVED: 2327 configs
