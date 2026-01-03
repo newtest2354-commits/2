@@ -1,16 +1,16 @@
 # Telegram HYSTERIA2 Configurations
-# Updated: 2026-01-03 18:19:54
+# Updated: 2026-01-03 19:06:53
 # Count: 11
 # Source: Telegram Channels
 
-hysteria2://d9812081-7f61-456d-9340-a1fb8dfd603b@80.225.253.247:443?security=tls&insecure=1&mport=50000-65535&sni=mumbai-4.nezhasu.com#ARISTA🔥
-hysteria2://b4bd0613-ff7c-4f2f-954d-185915e6ddad@206.71.158.41:35000?security=tls&obfs=salamander&obfs-password=%40JavidnamanIran-Javid-SHAH-KingRezaPahlavi&insecure=1&sni=jnir.pichondan.com#ARISTA🔥
+hysteria2://Yet-Another-Public-Config-1@206.71.158.37:35200?obfs=salamander&obfs-password=Yet-Another-Public-Config-1&sni=YAPC-1.afshin.ir&insecure=0#ARISTA🔥
+hysteria2://Yet-Another-Public-Config-1@[2a14:3f87:f001:13::a]:35000?security=tls&obfs=salamander&obfs-password=Yet-Another-Public-Config-1&insecure=0&sni=YAPC-1.afshin.ir#ARISTA🔥
+hysteria2://Yet-Another-Public-Config-1@206.71.158.37:36400?security=tls&obfs=salamander&obfs-password=Yet-Another-Public-Config-1&insecure=1&sni=YAPC-1.afshin.ir#ARISTA🔥
 hysteria2://b4bd0613-ff7c-4f2f-954d-185915e6ddad@206.71.158.40:35000?obfs=salamander&obfs-password=@JavidnamanIran-Javid-SHAH-KingRezaPahlavi&sni=api.kermanshahi.org&insecure=0#ARISTA🔥
 hysteria2://kl6QSAMhZS@91.99.225.11:443?security=tls&obfs=salamander&obfs-password=Jsbdksj%40V2RayyNGvpn%24Miracle&insecure=1&sni=refersion.com#ARISTA🔥
 hysteria2://lMa2L1EbH7@91.99.225.11:443?security=tls&obfs=salamander&obfs-password=Jsbdksj%40V2RayyNGvpn%24Miracle&insecure=1&sni=refersion.com#ARISTA🔥
 hysteria2://gZBgjlPmPF@85.9.197.203:2083?security=tls&obfs=salamander&obfs-password=Jsbdksj%40V2RayyNGvpn%24Miracle&insecure=1&sni=refersion.com#ARISTA🔥
 hysteria2://87q1ZjCf5K@45.32.145.222:2087?security=tls&obfs=salamander&obfs-password=Jsbdksj%40V2RayyNGvpn%24Miracle&insecure=1&sni=refersion.com#ARISTA🔥
 hysteria2://5x02AmyHdh@134.209.206.135:2087?security=tls&obfs=salamander&obfs-password=Jsbdksj%40V2RayyNGvpn%24Miracle&insecure=1&sni=refersion.com#ARISTA🔥
-hysteria2://Yet-Another-Public-Config-1@206.71.158.37:35200?obfs=salamander&obfs-password=Yet-Another-Public-Config-1&sni=YAPC-1.afshin.ir&insecure=0#ARISTA🔥
-hysteria2://Yet-Another-Public-Config-1@[2a14:3f87:f001:13::a]:35000?security=tls&obfs=salamander&obfs-password=Yet-Another-Public-Config-1&insecure=0&sni=YAPC-1.afshin.ir#ARISTA🔥
-hysteria2://Yet-Another-Public-Config-1@206.71.158.37:36400?security=tls&obfs=salamander&obfs-password=Yet-Another-Public-Config-1&insecure=1&sni=YAPC-1.afshin.ir#ARISTA🔥
+hysteria2://d9812081-7f61-456d-9340-a1fb8dfd603b@80.225.253.247:443?security=tls&insecure=1&mport=50000-65535&sni=mumbai-4.nezhasu.com#ARISTA🔥
+hysteria2://b4bd0613-ff7c-4f2f-954d-185915e6ddad@206.71.158.41:35000?security=tls&obfs=salamander&obfs-password=%40JavidnamanIran-Javid-SHAH-KingRezaPahlavi&insecure=1&sni=jnir.pichondan.com#ARISTA🔥
