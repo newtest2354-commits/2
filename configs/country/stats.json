@@ -1,23 +1,23 @@
 {
-  "total": 13358,
-  "processed": 13217,
+  "total": 13384,
+  "processed": 13243,
   "failed": 141,
-  "ip_based": 2338,
-  "domain_based": 10879,
+  "ip_based": 2355,
+  "domain_based": 10888,
   "cdn_detected": 0,
   "fixed_ip": 0,
   "residential": 0,
-  "unresolved": 2327,
+  "unresolved": 2338,
   "by_country": {
-    "UNKNOWN": 10890,
-    "UNRESOLVED": 2327
+    "UNKNOWN": 10905,
+    "UNRESOLVED": 2338
   },
   "by_protocol": {
-    "vmess": 736,
-    "vless": 9730,
-    "trojan": 291,
-    "ss": 903,
-    "hysteria": 1557
+    "vless": 9749,
+    "vmess": 762,
+    "hysteria": 1539,
+    "ss": 905,
+    "trojan": 288
   },
   "detection_method": {
     "geolite": 0,

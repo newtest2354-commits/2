@@ -1,6 +1,6 @@
 # GitHub TROJAN Configurations
-# Updated: 2026-01-03 17:50:02
-# Count: 275
+# Updated: 2026-01-03 18:19:56
+# Count: 272
 # Source: GitHub Repositories
 
 trojan://e86364fb-a5e3-42c3-b7fa-6ce8097fe19f@bisque.qzz.io:443?security=tls&sni=bisque.qzz.io&type=ws&path=%2F66.135.4.222%3A8443&Host=bisque.qzz.io#ARISTA🔥
@@ -99,14 +99,11 @@ trojan://BaeSzHdfJIR13l67@70.34.218.149:11930?security=tls&headerType=none&fp=ch
 trojan://iCfh96DEJn3%3DQRbzF.Tdl@212.192.214.46:18069?security=tls&headerType=none&type=tcp&sni=www.vk.com#ARISTA🔥
 trojan://OdgHycGphesfLmPMYolUF@172.238.229.254:14051?security=tls&headerType=none&type=tcp&sni=eh.vk.com#ARISTA🔥
 trojan://ZblhWr0mqMakCPg.N@212.193.18.144:36158?security=tls&headerType=none&fp=chrome&type=tcp&sni=api.avito.ru#ARISTA🔥
-trojan://telegram-id-privatevpns@18.193.238.117:22222?security=tls&amp;alpn=http/1.1&amp;headerType=none&amp;type=tcp&amp;sni=trojan.burgerip.co.uk#ARISTA🔥
-trojan://xtA6WF92Itmhm9jfvXUH1MDVL@free-de-3.undef.network:443?path=%2Ff2fc2a1f&amp;security=tls&amp;insecure=0&amp;host=free-de-3.undef.network&amp;type=ws&amp;allowInsecure=0&amp;sni=free-de-3.undef.network#ARISTA🔥
-trojan://BxceQaOe@54.238.144.17:3194?allowInsecure=1&sni=t.me%252Fripaojiedian#ARISTA🔥
 trojan://nYzYreUpD4dDjzjFcgf6Fe3oaw4QFN@trunker.cc:8080?security=reality&amp;pbk=BNDEyo7JzKrJ1xPgFNJv5P-emcPIoiUkGZ6OUmlctU4&amp;headerType=none&amp;fp=chrome&amp;type=tcp&amp;sni=wikipedia.org&amp;sid=20b8da6c1f3a9ed7#ARISTA🔥
-trojan://BxceQaOe@58.152.25.86:443?allowInsecure=1&sni=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%20%5BBy%20DukeMehdi%5D%20trojan-HK%20#ARISTA🔥
+trojan://BxceQaOe@58.152.25.86:443?allowInsecure=1&sni=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%20%5BBy%20EbraSha%5D%20#ARISTA🔥
 trojan://BxceQaOe@58.152.25.236:443?allowInsecure=1&sni=t.me%2Fripaojiedian#ARISTA🔥
-trojan://yUHNMwWvenoHBaN5CtqKPwt1CTzXgW@ru2.nnvpn.io:443?security=tls&headerType=none&type=tcp&sni=ru2.nnvpn.io#ARISTA🔥
-trojan://BxceQaOe@58.152.46.60:443?allowInsecure=1&sni=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%2B%5BBy%2BDukeMehdi%5D%2Btrojan-HK%2B#ARISTA🔥
+trojan://f36f4495b4b26cc2fe346cfa23e05b1b@160.16.144.208:3901?security=tls&sni=www.nintendogames.net#ARISTA🔥
+trojan://OdgHycGphesfLmPMYolUF@172.238.229.254:14051?security=tls&amp;headerType=none&amp;type=tcp&amp;sni=api.avito.ru#ARISTA🔥
 trojan://telegram-id-privatevpns@18.196.24.56:22222?security=tls&alpn=http/1.1&headerType=none&type=tcp&sni=trojan.burgerip.co.uk#ARISTA🔥
 trojan://telegram-id-privatevpns@18.198.145.155:22222?security=tls&alpn=http/1.1&headerType=none&type=tcp&sni=trojan.burgerip.co.uk#ARISTA🔥
 trojan://telegram-id-privatevpns@35.180.5.69:22222?security=tls&alpn=http/1.1&headerType=none&type=tcp&sni=trojan.burgerip.co.uk#ARISTA🔥
